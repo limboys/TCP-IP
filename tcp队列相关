@@ -1,0 +1,19 @@
+#查看全连接队列
+# -l 正在监听的socket
+# -n 不解析服务名称
+# -t 只显示tcp socket
+ss -lnt ｜ grep port
+
+#查看tcp全连接队列是否有溢出
+netstat -s ｜ grep overflowed
+
+#查看当前 TCP 半连接队列长度
+netstat -natp ｜ grep SYN_RECV | wc -l
+
+# 客户端对服务端进行压测
+# -t 6 表示6个线程
+# -c 30000 表示3万个连接
+# -d 60s 持续压测60s
+压测：wrk -t 6 - 30000 -d 60s http://192.168.3.200:8080
+
+TCP 全连接队列的最⼤值取决于 somaxconn 和 backlog 之间的最⼩值，也就是 min(somaxconn, backlog)   /proc/sys/net/core/somaxconn
