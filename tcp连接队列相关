@@ -4,8 +4,11 @@
 # -t 只显示tcp socket
 ss -lnt ｜ grep port
 
-#查看tcp全连接队列是否有溢出
+#查看tcp全连接队列是否有溢出（是否持续增长）
 netstat -s ｜ grep overflowed
+
+#查看tcp半连接队列是否有溢出（是否持续增长）
+netstat -s ｜ grep "SYNs to LISTEN"
 
 #查看当前 TCP 半连接队列长度
 netstat -natp ｜ grep SYN_RECV | wc -l
@@ -16,4 +19,16 @@ netstat -natp ｜ grep SYN_RECV | wc -l
 # -d 60s 持续压测60s
 压测：wrk -t 6 - 30000 -d 60s http://192.168.3.200:8080
 
-TCP 全连接队列的最⼤值取决于 somaxconn 和 backlog 之间的最⼩值，也就是 min(somaxconn, backlog)   /proc/sys/net/core/somaxconn
+TCP 全连接队列的最⼤值取决于 somaxconn 和 backlog 之间的最⼩值，也就是 min(somaxconn, backlog)   /proc/sys/net/core/somaxconn及 backlog nginx配置等
+
+TCP 半连接队溢出处理逻辑
+1. 如果半连接队列满了，并且没有开启 tcp_syncookies，则会丢弃；
+2. 若全连接队列满了，且没有重传 SYN+ACK 包的连接请求多于 1 个，则会丢弃；
+3. 如果没有开启 tcp_syncookies，并且 max_syn_backlog 减去 当前半连接队列⻓度⼩于 (max_syn_backlog
+>> 2)，则会丢弃
+
+#客户端发起SYN攻击
+# - S 指定TCP包的标识位
+# -p 8088 指定探测的目的端口
+# --flood 以泛洪方式攻击
+hping3 -S -p 8088 --flood 192.168.x.xx
