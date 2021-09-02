@@ -13,3 +13,45 @@ Redis 能使用的资源：
 对于大key 问题，最好的办法是做大key 分析
 将各个shard 的rdb 下载到本地做 内存大于10M 的大key分析
 rdb -c memory xxxx.rdb –bytes 10485760 -f xxxx.csv
+
+
+1.Amazon CloudWatch for Redis
+面向ElastiCache的CloudWatch指标主要分为两类：引擎级指标（由Redis INFO命令生成）以及主机级指标（来自ElastiCache节点的操作系统）,这些指标以60秒为间隔对每个缓存节点进行测量并进行发布
+
+除 ReplicationLag , EngineCPUUtilization ,swapUsage**之外,这些指标均源自 Redis info命令。每项指标均是按照缓存节点级计算的。
+
+参考：
+
+https://aws.amazon.com/cn/blogs/china/monitoring-best-practices-with-amazon-elasticache/
+
+https://www.datadoghq.com/blog/monitoring-elasticache-performance-metrics-with-redis-or-memcached/
+
+
+
+ActiveDefragHits	主动碎片整理过程每分钟执行的值重新分配次数。这是从Redis INFOactive_defrag_hits统计数据得出的。	数字	/
+AuthenticationFailures	使用 AUTH 命令向 Redis 进行身份验证的失败尝试总数。	计数	value>10
+BytesUsedForCache	Redis 为所有用途（包括数据集、缓冲区等）分配的总字节数。这是从Redis INFO的used_memory统计数据得出的.	字节	不超过可用系统内存总量
+CommandAuthorizationFailures	用户尝试运行他们无权调用的命令失败的总数。	计数	value>10
+CacheHitRate	表示Redis实例的使用效率。如果缓存比率低于大约 0.8，则意味着大量密钥被逐出、过期或不存在。这是通过以下方式使用cache_hits和cache_misses统计计算的 ：cache_hits /(cache_hits + cache_misses)。	百分比	value<0.8
+CurrConnections	客户端连接数，不包括来自只读副本的连接。在每种情况下，ElastiCache 使用两到四个连接来监控集群。这来自Redis INFO的connected_clients统计数据.	计数	value>65000
+DatabaseMemoryUsagePercentage	正在使用的集群的可用内存的百分比。这是使用 used_memory/maxmemory 从 Redis INFO计算得来的。	百分比	value>80%
+EngineCPUUtilization	提供Redis引擎线程的CPU利用率。由于 Redis 是单线程的，因此您可以使用此指标来分析 Redis 进程本身的负载。该 EngineCPUUtilization指标提供了 Redis 进程的更精确的可见性。您可以将其与CPUUtilization指标结合使用。CPUUtilization 将服务器实例的 CPU 利用率作为一个整体公开，包括其他操作系统和管理进程。对于具有四个或更多 vCPU 的较大节点类型，请使用该 EngineCPUUtilization指标来监控和设置扩展阈值。 注意：在 ElastiCache 主机上，后台进程监控主机以提供托管数据库体验。这些后台进程会占用 CPU 工作负载的很大一部分。建议在具有两个或更少 vCPU 的主机监控CPUUtilization 指标。	百分比	WARN为value>65%，HIGH为value>90%
+Evictions	由于maxmemory限制而被驱逐的密钥 数量。这来自Redis INFO的evicted_keys统计数据。	计数	value>5
+KeyAuthorizationFailures	用户尝试访问他们无权访问的密钥失败的总数。	计数	value>10
+MasterLinkHealthStatus	此状态有两个值：0 或 1。值 0 表示 ElastiCache 主节点中的数据与 EC2 上的 Redis 不同步。值为 1 表示数据是同步的。	Boolean	0
+MemoryFragmentationRatio	表示Redis引擎的内存分配效率。某些阈值表示不同的行为。推荐值是碎片大于 1.0。	数字	1.0<value<1.5
+ReplicationLag	该指标仅适用于作为只读副本运行的节点。它代表副本在应用主节点的改动方面滞后的时间（以秒为单位）。	对于 Redis 引擎版本 5.0.6，为毫秒。对于所有其他支持的引擎版本，为秒	0.3
+SaveInProgress	每当后台保存（分叉或无分叉）正在进行时，此二进制指标返回 1，否则返回 0。后台保存过程通常在快照和同步期间使用。这些操作会导致性能下降。使用该SaveInProgress指标，您可以诊断性能下降是否由后台保存过程引起。这是从Redis INFO的rdb_bgsave_in_progress 统计数据得出的	计数	0
+swapUsage
+
+交换空间使用大小	字节	<50MB
+GetTypeCmdsLatency	读取命令的延迟。	微秒	500ms
+HashBasedCmdsLatency	基于哈希的命令的延迟。	微秒	500ms
+KeyBasedCmdsLatency	基于键的命令的延迟。	微秒	500ms
+ListBasedCmdsLatency	基于列表的命令的延迟。	微秒	500ms
+PubSubBasedCmdsLatency	基于发布/订阅的命令的延迟。	微秒	500ms
+SetBasedCmdsLatency	基于集合的命令的延迟。	微秒	500ms
+SetTypeCmdsLatency	写入命令的延迟。	微秒	500ms
+SortedSetBasedCmdsLatency	基于排序的命令的延迟。	微秒	500ms
+StringBasedCmdsLatency	基于字符串的命令的延迟。	微秒	500ms
+StreamBasedCmdsLatency	基于流的命令的延迟。	微秒	500ms
