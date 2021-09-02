@@ -1,0 +1,15 @@
+redis周期性cpu使用率过高
+
+Redis 能使用的资源：
+1. 网络吞吐， 在redis key 比较大，请求较为频繁的情况下，会由于网络吞吐达到cpu 上限
+2. 磁盘IO, redis 要根据bgsave定时rdb 文件，如果磁盘性能不够或者是多个Redis 实例同时做bgsave，也会产生CPU问题
+3. 连接数问题， Redis 在6.0 之前都是单进程模型，包括在网络处理，进程处理等，如果连接数过高，读写网络的read/write系统调用在Redis执行期间占用了大部分CPU时间，就可能导致cpu 过高
+4. 慢查询 slow query
+5. 大key ，热key 问题
+- 检查网络吞吐，磁盘IO 都比较正常，连接数也在正常范围内
+- 由于机器没有开启slowlog ，所以暂时没法查慢查询问题
+- 同时观察慢查询cpu 利用率有周期性升高表现，猜测为大key 问题
+
+对于大key 问题，最好的办法是做大key 分析
+将各个shard 的rdb 下载到本地做 内存大于10M 的大key分析
+rdb -c memory xxxx.rdb –bytes 10485760 -f xxxx.csv
