@@ -10,8 +10,8 @@ netstat -s ｜ grep overflowed
 #查看tcp半连接队列是否有溢出（是否持续增长）
 netstat -s ｜ grep "SYNs to LISTEN"
 
-#查看当前 TCP 半连接队列长度
-netstat -natp ｜ grep SYN_RECV | wc -l
+#查看当前 TCP 半连接队列长度 替换成自己想要查看的IP端口
+netstat -nt | grep -i '127.0.0.1:8080' | grep -i 'SYN_RECV' | wc -l
 
 # 客户端对服务端进行压测
 # -t 6 表示6个线程
